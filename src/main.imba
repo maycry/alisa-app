@@ -1,5 +1,5 @@
+import {shuffle} from "./utils.imba"
 
-import {shuffle} from "./util"
 css html ff: Sans-Serif
 
 let answers = []
@@ -19,6 +19,8 @@ def fillAnswers(a, b)
 fillAnswers(number1, number2)
 shuffle(answers)
 
+console.log "Test"
+
 tag app
 
 	css d:grid grid-gap:13px gtc:1fr 1fr mt:10px
@@ -29,6 +31,5 @@ tag app
 		<div> "{number1}+{number2}=?"
 		for answer in answers
 			<div> answer
-
 
 imba.mount <app>

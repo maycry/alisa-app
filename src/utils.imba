@@ -9,3 +9,6 @@ export def shuffle(array)
 		[array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]]
 
 	return array
+
+export def getRandomInt max
+	Math.floor Math.random() * max

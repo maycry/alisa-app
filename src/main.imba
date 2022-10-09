@@ -1,10 +1,5 @@
-import {shuffle,getRandomInt} from "./utils.imba"
+import {shuffle, getRandomInt} from "./utils.imba"
 import "./app.css"
-
-
-let result = "?"
-let submited? = false
-let submitedCorrect? = false
 
 class Level
 	prop a 
@@ -13,18 +8,19 @@ class Level
 	prop currentPrompt = -1
 	prop promptsTotal = 10
 	prop promptHistory = []
+	prop submited? = false
+	prop submitedCorrect? = false
 
 	def nextPrompt
 		currentPrompt++
 		a = getRandomInt 10
 		b = getRandomInt 10
-		answer1 = { result: a + b, correct: true, active: false }
-		answer2 = { result: a + b + 1, correct: false, active: false }
-		answer3 = { result: a + b + 2, correct: false, active: false }
-		answer4 = { result: a + b - 1, correct: false, active: false }
+		answer1 = {result: a + b,     correct: true,  active: false}
+		answer2 = {result: a + b + 1, correct: false, active: false}
+		answer3 = {result: a + b + 2, correct: false, active: false}
+		answer4 = {result: a + b - 1, correct: false, active: false}
 		answers = [answer1, answer2, answer3, answer4]
 		shuffle(answers)
-		result = "?"
 		submited? = false
 
 	constructor
@@ -35,15 +31,19 @@ class Level
 let lvl = new Level
 
 tag app
-	
 	def handleSelect(e)
-		result = lvl.a + lvl.b
-		submitedCorrect? = e.detail
-		submited? = true
+		lvl.submitedCorrect? = e.detail.correct
+		lvl.promptHistory[lvl.currentPrompt]={
+			completed: true
+			correct: lvl.submitedCorrect?
+			}
+		lvl.submited? = true
 
 	def reload
-		lvl.promptHistory[lvl.currentPrompt]={completed: true, correct: submitedCorrect?}
 		lvl.nextPrompt()
+		if lvl.currentPrompt > lvl.promptsTotal - 1
+			imba.unmount self
+			imba.mount <modal-complete>
 	
 	css .grid d:grid grid-gap:13px gtc:1fr 1fr mt:10px
 		.prompt bgc:cool2 rd:lg aspect-ratio:1/1 d:flex ai:center jc:center fs:2xl gc: 1 / 3 aspect-ratio: 2 / 1
@@ -53,16 +53,18 @@ tag app
 	def render
 		<self>
 			<div.grid>
-				<.prompt> "{lvl.a}+{lvl.b}={result}"
+				<.prompt> 
+					"{lvl.a}+{lvl.b}={lvl.submited? ? lvl.a + lvl.b : "?"}"
 				for answer in lvl.answers
 					<answer-item  @select=(handleSelect(e)) data=answer>
-				<button.next @click=reload [d:none]=!submited?> "Next"
+				if lvl.submited?
+					<button.next @click=reload> "Next"
 			<ticks-group>
 
 tag answer-item
-	def select(data)
+	def select
 		data.active = true
-		emit("select", data.correct)
+		emit("select", data)
 
 	css aspect-ratio:1/1 d:flex ai:center jc:center
 		button bgc:cool2 size:100% rd:lg fs:2xl
@@ -70,8 +72,12 @@ tag answer-item
 		.correct bgc:green4
 		.incorrect bgc:red4
 	
-	<self> 
-		<button @click=select(data) .correct=(data.active and data.correct) .incorrect=(data.active and !data.correct)> data.result
+	def render
+		<self> 
+			if data.active
+				<button @click=select .correct=data.correct .incorrect=!data.correct> data.result
+			else
+				<button @click=select> data.result
 
 tag ticks-group
 	css h:50px  w:100% d:flex g:10px pos:fixed b:0px jc:center
@@ -79,8 +85,31 @@ tag ticks-group
 		.correct bgc:green4 c:green4
 		.incorrect bgc:red4 c:red4
 
-	<self>
-		for prompt, i in lvl.promptHistory
-			<div .correct=(prompt.correct and prompt.completed) .incorrect=(!prompt.correct and prompt.completed)> i + 1
+	def render
+		<self>
+			for prompt, i in lvl.promptHistory
+				if prompt.completed
+					<div .correct=prompt.correct .incorrect=!prompt.correct> i + 1
+				else
+					<div> i + 1
+
+tag modal-complete
+
+	css pos:absolute bgc:cool5 size: 94% t:3% r:3% rd:lg d:flex jc:center ai:center fld:column g:20px
+		fs:5xl c:white fs:4xl
+		button fs:lg p:10px 20px rd:lg
+
+	def render
+		def restart
+			lvl = new Level
+			imba.unmount self
+			imba.mount <app>
+
+
+		<self>
+			<div> "Good Job!"
+			<button @click=restart> "Start over"
+
+
 
 imba.mount <app>

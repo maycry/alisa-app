@@ -94,18 +94,16 @@ tag ticks-group
 					<div> i + 1
 
 tag modal-complete
-
 	css pos:absolute bgc:cool5 size: 94% t:3% r:3% rd:lg d:flex jc:center ai:center fld:column g:20px
 		fs:5xl c:white fs:4xl
 		button fs:lg p:10px 20px rd:lg
-
-	def render
-		def restart
+	
+	def restart
 			lvl = new Level
 			imba.unmount self
 			imba.mount <app>
 
-
+	def render
 		<self>
 			<div> "Good Job!"
 			<button @click=restart> "Start over"
